@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Valentine</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    background: #ffd6e8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "Times New Roman", Times, serif;
+    overflow: hidden;
+    cursor: none;
+}
+
+.box {
+    background: #fff1dc;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    width: 320px;
+    z-index: 2;
+}
+
+.box img {
+    width: 100%;
+    border-radius: 15px;
+    margin-bottom: 15px;
+}
+
+h1 {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-around;
+    position: relative;
+    height: 50px;
+}
+
+button {
+    padding: 10px 22px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: "Times New Roman", Times, serif;
+}
+
+#yes {
+    background: #ff5fa2;
+    color: white;
+}
+
+#no {
+    background: #cfcfcf;
+    color: black;
+    position: absolute;
+    right: 0;
+    transition: transform 0.25s ease-out;
+}
+
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    display: none;
+    z-index: 1;
+}
+
+.sparkle-heart {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    pointer-events: none;
+    opacity: 0.9;
+    z-index: 9999;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box" id="box">
+    <img src="image.png" alt="Image">
+    <h1>NIBBE WILL YOU BE MY VALENTINE?</h1>
+    <div class="buttons">
+        <button id="yes">Yes</button>
+        <button id="no">No</button>
+    </div>
+</div>
+
+<canvas id="fireworks"></canvas>
+
+<script>
+const noBtn = document.getElementById("no");
+const yesBtn = document.getElementById("yes");
+const box = document.getElementById("box");
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+
+// Move No button
+function moveNo() {
+    const x = Math.random() * 260 - 130;
+    const y = Math.random() * 140 - 70;
+    noBtn.style.transform = `translate(${x}px, ${y}px)`;
+}
+noBtn.addEventListener("mouseover", moveNo);
+noBtn.addEventListener("touchstart", moveNo);
+
+// Yes button click
+yesBtn.addEventListener("click", () => {
+    document.body.style.background = "black";
+    box.style.display = "none";
+
+    canvas.style.display = "block";
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    startContinuousFireworks();
+
+    setTimeout(() => {
+        box.innerHTML = "<h1>MWAHHHHHHHHHHHHHHHHHH😘😘😘😘😘</h1>";
+        box.style.display = "block";
+    }, 700);
+});
+
+// Continuous heart fireworks
+function startContinuousFireworks() {
+    const colors = ["#ff5fa2", "#ff9de2", "#ffb3c6", "#ffcce5", "#ff77aa"];
+    const bursts = [];
+
+    function createBurst() {
+        const centerX = Math.random() * canvas.width * 0.8 + canvas.width*0.1;
+        const centerY = Math.random() * canvas.height * 0.6 + canvas.height*0.1;
+        const particles = [];
+        const numParticles = 30 + Math.floor(Math.random() * 20);
+
+        for (let i = 0; i < numParticles; i++) {
+            particles.push({
+                x: centerX,
+                y: centerY,
+                angle: Math.random() * Math.PI * 2,
+                speed: Math.random() * 5 + 2,
+                life: 60 + Math.random()*20,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                size: Math.random() * 6 + 3
+            });
+        }
+        bursts.push(particles);
+    }
+
+    // Create a new burst every 300ms
+    setInterval(createBurst, 300);
+
+    function drawHeart(x, y, size, color) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.bezierCurveTo(x - size, y - size, x - size * 1.5, y + size / 2, x, y + size);
+        ctx.bezierCurveTo(x + size * 1.5, y + size / 2, x + size, y - size, x, y);
+        ctx.fill();
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let alive = false;
+
+        bursts.forEach(particles => {
+            particles.forEach(p => {
+                if (p.life > 0) {
+                    p.x += Math.cos(p.angle) * p.speed;
+                    p.y += Math.sin(p.angle) * p.speed;
+                    p.life--;
+                    drawHeart(p.x, p.y, p.size, p.color);
+                    alive = true;
+                }
+            });
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+}
+
+// Sparkly heart cursor trail (desktop only)
+if (window.matchMedia("(pointer: fine)").matches) {
+    const hearts = [];
+    const maxHearts = 20;
+
+    document.addEventListener("mousemove", (e) => {
+        const heart = document.createElement("div");
+        heart.className = "sparkle-heart";
+
+        heart.style.left = e.clientX + "px";
+        heart.style.top = e.clientY + "px";
+        heart.style.width = "10px";
+        heart.style.height = "10px";
+        heart.style.background = "pink";
+        heart.style.clipPath = "polygon(50% 0%, 61% 14%, 75% 25%, 85% 40%, 50% 100%, 15% 40%, 25% 25%, 39% 14%)";
+        heart.style.transition = "transform 0.6s, opacity 0.6s";
+
+        document.body.appendChild(heart);
+        hearts.push(heart);
+
+        setTimeout(() => {
+            heart.style.transform = "translateY(-20px) scale(0.5)";
+            heart.style.opacity = 0;
+        }, 10);
+
+        setTimeout(() => {
+            heart.remove();
+            hearts.shift();
+        }, 600);
+
+        if (hearts.length > maxHearts) {
+            const oldHeart = hearts.shift();
+            oldHeart.remove();
+        }
+    });
+}
+</script>
+
+</body>
+</html>
+    
